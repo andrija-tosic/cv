@@ -2,10 +2,6 @@
   "python.terminal.executeInFileDir": true,
   "python.analysis.typeCheckingMode": "basic",
   "editor.formatOnSave": true,
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.python",
-    "editor.wordWrapColumn": 100
-  },
   "notebook.output.textLineLimit": 999,
   "prettier.enable": false
 }

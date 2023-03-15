@@ -9,7 +9,7 @@ def normalize_uint8(input: np.ndarray) -> cv2.Mat:
 
 
 if __name__ == '__main__':
-    img = cv2.imread('input.png', cv2.COLOR_BGR2GRAY)
+    img = cv2.imread('input.png', cv2.IMREAD_GRAYSCALE)
 
     e1 = cv2.getTickCount()
 
