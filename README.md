@@ -2,4 +2,4 @@
 
 Computer vision using OpenCV
 
-![screenshot](./Lab%201/lab_1.png "Screenshot")
+![Lab 1 - FFT](./Lab%201%20-%20FFT/lab_1.png "Screenshot")
