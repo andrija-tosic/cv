@@ -32,19 +32,21 @@ def kmeans_extract_color_palette(image: np.ndarray, palette_size: int):
         palette_rgb[i] = np.array(centers[cluster_idx].astype(int))
         i += 1
 
-        palette.append(np.full(
-            (image.shape[0], image.shape[1], 3), fill_value=centers[cluster_idx].astype(int), dtype=np.uint8))
+        palette.append(np.full((image.shape[0], image.shape[1], 3),
+                       fill_value=centers[cluster_idx].astype(int), dtype=np.uint8))
 
     return palette, palette_rgb
 
 
-coins_bgr = cv2.imread('coins.png', cv2.IMREAD_UNCHANGED)
-coins_gray = cv2.cvtColor(coins_bgr, cv2.COLOR_BGR2GRAY)
+_coins_bgr = cv2.imread('coins.png', cv2.IMREAD_UNCHANGED)
+coins_rgb = cv2.cvtColor(_coins_bgr, cv2.COLOR_BGR2RGB)
+coins_gray = cv2.cvtColor(_coins_bgr, cv2.COLOR_BGR2GRAY)
 
-_t, mask_all_coins = cv2.threshold(
+_threshold, mask_all_coins = cv2.threshold(
     coins_gray, 150, 255, cv2.THRESH_BINARY_INV)
 
-imgEdge = cv2.Canny(coins_gray, 145, 553, apertureSize=3, L2gradient=True)
+coins_canny_edges = cv2.Canny(
+    coins_gray, 145, 553, apertureSize=3, L2gradient=True)
 
 mask_all_coins = cv2.morphologyEx(
     mask_all_coins, cv2.MORPH_CLOSE, cv2.getStructuringElement(
@@ -53,7 +55,8 @@ mask_all_coins = cv2.morphologyEx(
 mask_all_coins = cv2.erode(
     mask_all_coins, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3)))
 
-palette, palette_rgb = kmeans_extract_color_palette(coins_bgr, palette_size=12)
+color_palette, palette_rgb = kmeans_extract_color_palette(
+    coins_rgb, palette_size=12)
 palette_rgb = palette_rgb[-2:]
 
 avg = np.average(palette_rgb, axis=0)
@@ -63,26 +66,42 @@ palette_range_low, palette_range_high = palette_rgb[0], palette_rgb[-1]
 error_arr = np.full((3,), 20)
 
 marker_copper_coin = cv2.inRange(
-    coins_bgr, palette_range_low, palette_range_high)
-
+    coins_rgb, palette_range_low, palette_range_high)
 
 marker = cv2.bitwise_and(marker_copper_coin, mask_all_coins)
 
 mask_reconstructed = morphological_reconstruction(
     marker, mask_all_coins)
 
-coins_masked = cv2.bitwise_and(coins_bgr, coins_bgr, mask=mask_reconstructed)
+coins_masked = cv2.bitwise_and(coins_rgb, coins_rgb, mask=mask_reconstructed)
 
-palette = np.hstack(palette)
+color_palette = np.hstack(color_palette)
 
-sf = coins_bgr.shape[1] / palette.shape[1]
-out = np.vstack([coins_bgr, cv2.resize(palette, (0, 0), fx=sf, fy=sf)])
+scale_factor = coins_rgb.shape[1] / color_palette.shape[1]
 
-cv2.imshow('canny', imgEdge)
-cv2.imshow('mask_all_coins', mask_all_coins)
-cv2.imshow('marker_copper_coin', marker_copper_coin)
-cv2.imshow('result', coins_masked)
-cv2.imshow('kmeans color analysis', out)
+kmeans_colors_img = np.vstack(
+    [coins_rgb, cv2.resize(color_palette, (0, 0), fx=scale_factor, fy=scale_factor)])
+
+_figure, axes_arr = plt.subplots(2, 3)
+
+axes_arr[0][0].set_title('Original image')
+axes_arr[0][0].imshow(coins_rgb)
+
+axes_arr[0][1].set_title('Canny edge detection')
+axes_arr[0][1].imshow(coins_canny_edges, cmap='gray')
+
+axes_arr[0][2].set_title('Mask of all coins')
+axes_arr[0][2].imshow(mask_all_coins, cmap='gray')
+
+axes_arr[1][0].set_title('Kmeans color analysis')
+axes_arr[1][0].imshow(kmeans_colors_img)
+
+axes_arr[1][1].set_title('Copper coin marker')
+axes_arr[1][1].imshow(marker_copper_coin, cmap='gray')
+
+axes_arr[1][2].set_title('Result')
+axes_arr[1][2].imshow(coins_masked, cmap='gray')
 
 cv2.imwrite('coin_mask.png', mask_reconstructed)
-cv2.waitKey()
+plt.show()
+
