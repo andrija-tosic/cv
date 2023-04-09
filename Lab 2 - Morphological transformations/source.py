@@ -104,4 +104,3 @@ axes_arr[1][2].imshow(coins_masked, cmap='gray')
 
 cv2.imwrite('coin_mask.png', mask_reconstructed)
 plt.show()
-
