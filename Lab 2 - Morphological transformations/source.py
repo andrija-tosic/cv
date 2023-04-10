@@ -77,7 +77,7 @@ coins_masked = cv2.bitwise_and(coins_rgb, coins_rgb, mask=mask_reconstructed)
 
 color_palette = np.hstack(color_palette)
 
-scale_factor = coins_rgb.shape[1] / color_palette.shape[1]
+scale_factor = coins_rgb.shape[1] // color_palette.shape[1]
 
 kmeans_colors_img = np.vstack(
     [coins_rgb, cv2.resize(color_palette, (0, 0), fx=scale_factor, fy=scale_factor)])
